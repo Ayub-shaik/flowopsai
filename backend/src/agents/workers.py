@@ -1,6 +1,9 @@
 import time
 
 def run_worker():
+    # Replace with your real worker loop
+    print("Agent worker loop starting...")
     while True:
-        print("Worker is running tasks (stub)...")
-        time.sleep(10)
+        # do background work / poll queues, etc.
+        time.sleep(5)
+        print("Agent tick...")

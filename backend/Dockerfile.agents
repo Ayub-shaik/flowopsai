@@ -10,10 +10,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src ./src
+
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app/src
 
-EXPOSE ${FLOWOPSAI_AGENTS_PORT}
-
-# Start the worker
-CMD ["python", "src/agents/main.py"]
+# run the package as a module so relative paths resolve
+CMD ["python", "-m", "agents.main"]

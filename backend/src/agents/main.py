@@ -1,5 +1,9 @@
-from .workers import run_worker
+# run as a package module: python -m agents.main
+from agents.workers import run_worker  # absolute import
 
-if __name__ == "__main__":
+def main():
     print("Starting agent worker...")
     run_worker()
+
+if __name__ == "__main__":
+    main()

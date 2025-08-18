@@ -1,19 +1,15 @@
 from fastapi import APIRouter
-from ..mlops.trainer import train_model_stub
-from ..mlops.evaluator import evaluate_model_stub
+# use absolute import to sibling package
+from mlops.trainer import train_model_stub  # adjust to your actual function names
 
-router = APIRouter()
+router = APIRouter(prefix="/api", tags=["api"])
 
-@router.get("/ping")
-def ping():
-    return {"message": "pong"}
+@router.get("/health")
+def health():
+    return {"status": "ok"}
 
 @router.post("/train")
-def train_model():
+def trigger_train():
+    # simple stub; call your real training orchestration
     result = train_model_stub()
-    return {"status": "training started", "result": result}
-
-@router.get("/evaluate")
-def evaluate_model():
-    result = evaluate_model_stub()
-    return {"status": "evaluation complete", "result": result}
+    return {"message": "training started", "result": result}

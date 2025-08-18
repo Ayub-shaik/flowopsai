@@ -1,22 +1,23 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
-import Insights from "./pages/Insights";
-import Models from "./pages/Models";
-import Workflows from "./pages/Workflows";
+import React from "react";
+import { Routes, Route, NavLink } from "react-router-dom";
+import Home from "./pages/Home.jsx";
+import Insights from "./pages/Insights.jsx";
+import Models from "./pages/Models.jsx";
+import Workflows from "./pages/Workflows.jsx";
+import Navbar from "./components/Navbar.jsx";
 
-function App() {
+export default function App() {
   return (
-    <Router>
+    <>
       <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/insights" element={<Insights />} />
-        <Route path="/models" element={<Models />} />
-        <Route path="/workflows" element={<Workflows />} />
-      </Routes>
-    </Router>
+      <main style={{ padding: 16 }}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/insights" element={<Insights />} />
+          <Route path="/models" element={<Models />} />
+          <Route path="/workflows" element={<Workflows />} />
+        </Routes>
+      </main>
+    </>
   );
 }
-
-export default App;

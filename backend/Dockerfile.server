@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# System deps for psycopg2, etc.
+# System deps for psycopg2 etc.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential libpq-dev && \
     rm -rf /var/lib/apt/lists/*
@@ -11,14 +11,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# App source
+# App code
 COPY src ./src
 
-# Ensure uvicorn can import "server.main" from /app/src
+# Make /app/src importable as top-level packages
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app/src
 
-EXPOSE ${FLOWOPSAI_SERVER_PORT}
+EXPOSE 8181
 
-# Launch FastAPI app
+# Uvicorn entrypoint; "server.main:app" works now that packages exist
 CMD ["uvicorn", "server.main:app", "--host", "0.0.0.0", "--port", "8181"]
