@@ -1,0 +1,41 @@
+cat > .dockerignore <<'EOF'
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+build
+dist
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+.venv
+.env
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+
+# Tests
+coverage/
+*.pytest_cache
+EOF

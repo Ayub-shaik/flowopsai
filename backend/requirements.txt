@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+pydantic
+sqlalchemy
+psycopg2-binary
+openai
+google-generativeai
+anthropic
+transformers
+torch
+scikit-learn
+pandas
