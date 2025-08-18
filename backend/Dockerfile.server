@@ -1,16 +1,23 @@
-# backend/Dockerfile.server
 FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential python3-dev \
+# Install system deps (e.g. psycopg2, build essentials)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Python deps
 COPY requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Copy source
+COPY src ./src
 
-CMD ["uvicorn", "src.server.main:app", "--host", "0.0.0.0", "--port", "5000", "--reload"]
+ENV PYTHONUNBUFFERED=1
+ENV PORT=${FLOWOPSAI_SERVER_PORT}
+
+EXPOSE ${FLOWOPSAI_SERVER_PORT}
+
+CMD ["python", "src/server/main.py"]
