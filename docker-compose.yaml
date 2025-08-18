@@ -1,0 +1,92 @@
+version: "3.9"
+
+services:
+  # FlowOpsAI Server (API + Orchestration)
+  flowopsai-server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.server
+    container_name: flowopsai-server
+    ports:
+      - "${FLOWOPSAI_SERVER_PORT:-8181}:${FLOWOPSAI_SERVER_PORT:-8181}"
+    env_file:
+      - .env
+    networks:
+      - flowopsai-network
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/tests:/app/tests
+    command: ["python", "-m", "uvicorn", "src.server.main:app", "--host", "0.0.0.0", "--port", "${FLOWOPSAI_SERVER_PORT:-8181}", "--reload"]
+    depends_on:
+      - flowopsai-db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${FLOWOPSAI_SERVER_PORT:-8181}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # FlowOpsAI Agents (AI Workers, GPU-enabled)
+  flowopsai-agents:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.agents
+    container_name: flowopsai-agents
+    ports:
+      - "${FLOWOPSAI_AGENTS_PORT:-8052}:${FLOWOPSAI_AGENTS_PORT:-8052}"
+    env_file:
+      - .env
+    networks:
+      - flowopsai-network
+    deploy: {}
+    runtime: nvidia
+    mem_limit: 4g
+    cpus: "3.0"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${FLOWOPSAI_AGENTS_PORT:-8052}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # FlowOpsAI Frontend (React + Vite)
+  flowopsai-ui:
+    build: ./frontend
+    container_name: flowopsai-ui
+    ports:
+      - "${FLOWOPSAI_UI_PORT:-3737}:5173"
+    env_file:
+      - .env
+    networks:
+      - flowopsai-network
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - flowopsai-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Postgres Database
+  flowopsai-db:
+    image: postgres:15
+    container_name: flowopsai-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - flowopsai-network
+
+networks:
+  flowopsai-network:
+    driver: bridge
+
+volumes:
+  db_data:
