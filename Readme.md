@@ -1,67 +1,159 @@
-# ■ FlowOpsAI
-**FlowOpsAI** is an **AI + MLOps SaaS orchestration framework** designed to unify **LLMs,
-custom ML models, and AI agents** into one seamless platform.
-Whether you’re building AI-powered workflows, deploying custom models, or gaining insights from
-metrics — FlowOpsAI provides a **production-ready foundation**.
+# 🌟 FlowOpsAI
+
+FlowOpsAI is an **AI + MLOps SaaS orchestration framework** that empowers developers, data scientists, and DevOps engineers to:
+
+- 🚀 Define and train **custom ML models**  
+- 🔗 Integrate with **OpenAI, Gemini, Anthropic, and OSS LLMs**  
+- 🤖 Automate workflows with **AI agents**  
+- 📊 Gain **insights & evaluation metrics** through an interactive UI  
+
 ---
-## ■ Features
-■ **Model Orchestration** – Train, evaluate, and manage custom ML models
-■ **LLM Integrations** – Plug-and-play with **OpenAI, Gemini, Anthropic, Mistral, and OSS LLMs**
-■ **AI Agents** – Build and run workflow-aware AI agents for automation
-■ **Observability** – Logging, metrics, and insights out of the box
-■ **Containerized** – Ready for **Docker & Docker Compose** deployment
-■ **UI Dashboard** – Interactive frontend for monitoring and managing everything
+
+## 📦 Features
+
+- **Trainer Service**: Train, monitor, and evaluate ML models.  
+- **Agents Service**: Define and run autonomous AI agents for workflow automation.  
+- **FlowOpsAI Server**: Orchestrates communication between services.  
+- **Frontend UI**: Modern React-based interface for workflows, insights, and models.  
+- **Database Support**: PostgreSQL integration for persistent storage.  
+- **Multi-LLM Support**: Plug in OpenAI, Gemini, Anthropic, or Mistral seamlessly.  
+- **Dockerized Deployment**: Spin up the entire stack with `docker-compose`.  
+
 ---
-## ■ Project Structure
-flowopsai/
-■■■ backend/ # FastAPI/Flask backend (API + Trainer + Orchestration logic)
-■■■ frontend/ # React-based dashboard (UI to manage workflows/agents/models)
-■■■ docker-compose.yml # Multi-service stack definition
-■■■ .env # Environment variables (API keys, DB configs, ports)
-■■■ README.md # Project documentation
----
-## ■ Quick Start
-1■■ **Clone the repository**
-git clone https://github.com//flowopsai.git
+
+## ⚡ Quick Start
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/<your-username>/flowopsai.git
 cd flowopsai
-2■■ **Set up environment**
+
+# 2. Create environment file
 cp .env.example .env
-# Edit `.env` with your API keys & database config
-3■■ **Start the stack**
+
+# 3. Start services
 docker-compose up --build -d
-4■■ **Access services**
-- ■ **Frontend UI** → http://localhost:3737
-- ■■ **Backend API** → http://localhost:8181
-- ■ **Agents API** → http://localhost:8052
-- ■ **Trainer Service** → http://localhost:8090
----
-## ■■ Architecture
-Frontend → Backend → Agents/Trainer → Database
----
-## ■■ Configuration
-Update your `.env` file with the following keys:
-# Ports
+
+# 4. Access the services
+# Frontend UI: http://localhost:3737
+# API Server:  http://localhost:8181
+# Agents:      http://localhost:8052
+# Trainer:     http://localhost:8090
+
+🔑 Environment Variables
+
+Example .env:
+
+
+# Trainer
 TRAINER_PORT=8090
+
+# App Config
 FLOWOPSAI_SERVER_PORT=8181
 FLOWOPSAI_AGENTS_PORT=8052
 FLOWOPSAI_UI_PORT=3737
+HOST=localhost
+LOG_LEVEL=INFO
+
 # Database
 POSTGRES_USER=flowopsai
 POSTGRES_PASSWORD=supersecretpassword
 POSTGRES_DB=flowopsai_db
+
 # API Keys
 OPENAI_API_KEY=your-openai-key
 GEMINI_API_KEY=your-gemini-key
 ANTHROPIC_API_KEY=your-anthropic-key
+MISTRAL_API_KEY=your-mistral-key
+
+# Observability
+LOGFIRE_TOKEN=
+
+🏗️ Project Structure
+flowopsai/
+│── backend/                # Core backend orchestration server
+│── frontend/               # React-based frontend UI
+│   ├── public/             # Static files
+│   ├── src/                # React components & pages
+│   └── Dockerfile.frontend
+│── ml-trainer/             # Model training service
+│── agents/                 # AI agents and workflows
+│── docker-compose.yml      # Multi-service orchestration
+│── .env.example            # Example environment config
+│── README.md               # Project documentation
+
+
+🐳 Docker Deployment
+
+Run the stack:
+
+docker-compose up --build -d
+
+
+Stop all services:
+
+docker-compose down -v
+
+
+Rebuild without cache:
+
+docker-compose build --no-cache
+
+🖥️ Accessing Services
+
+Frontend (UI): http://localhost:3737
+
+Server (API): http://localhost:8181
+
+Agents: http://localhost:8052
+
+Trainer: http://localhost:8090
+
+🛠️ Development
+Install dependencies
+cd frontend && npm install
+cd ../backend && pip install -r requirements.txt
+
+Run locally (without Docker)
+# Start backend
+cd backend && uvicorn main:app --reload --port 8181
+
+# Start frontend
+cd frontend && npm start
+
+🧪 Testing
+
+Run unit tests for backend:
+
+pytest backend/tests
+
+
+Run frontend tests:
+
+cd frontend && npm test
+
+📊 Roadmap
+
+ Add support for Hugging Face Inference API
+
+ Enable multi-agent collaborative workflows
+
+ Expand observability with Grafana dashboards
+
+ Add user authentication & RBAC
+
+ Deploy Helm charts for Kubernetes
+
+🤝 Contributing
+
+Contributions are welcome! Please fork the repository and submit a PR.
+Make sure to follow the coding standards and include relevant tests.
+
+📜 License
+
+MIT License © 2025 [Your Name]
+
+
 ---
-## ■■ Tech Stack
-- **Frontend** → React + Vite (UI dashboard)
-- **Backend** → FastAPI/Flask (REST API + orchestration)
-- **Agents** → Python AI Agents (workflows, automation)
-- **Trainer** → Model training & evaluation service
-- **Database** → PostgreSQL (persistent storage)
-- **Infra** → Docker + Docker Compose
----
-## ■ License
-This project is licensed under the **MIT License**.
-See the LICENSE file for details.
+
+Would you like me to also **add project logo + badges** (Docker pulls, GitHub stars, License, etc.) at the very top for a more “open-source polished look”?
