@@ -1,26 +1,16 @@
-# Stage 1: Build Vite React app
+# Build
 FROM node:20 AS build
 WORKDIR /app
 
-# Install deps using lockfile if present
 COPY package.json package-lock.json* ./
-RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --legacy-peer-deps; fi
+RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install; fi
 
-# Copy Vite entry and source explicitly
-COPY index.html ./index.html
-COPY src ./src
-COPY public ./public
-
-# Build to /app/dist
+COPY . .
 RUN npm run build
 
-# Stage 2: Serve static with nginx
+# Serve
 FROM nginx:alpine
-# Copy built files to nginx html root
 COPY --from=build /app/dist /usr/share/nginx/html
-
-# Replace default site with SPA + API proxy
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
-
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 3737
 CMD ["nginx", "-g", "daemon off;"]
