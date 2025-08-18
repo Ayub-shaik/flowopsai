@@ -32,7 +32,9 @@ services:
       - flowopsai-net
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
     container_name: flowopsai-frontend
     env_file:
       - .env
@@ -44,7 +46,9 @@ services:
       - flowopsai-net
 
   ml-trainer:
-    build: ./ml-trainer
+    build:
+      context: ./ml-trainer
+      dockerfile: Dockerfile.trainer
     container_name: flowopsai-ml-trainer
     env_file:
       - .env
