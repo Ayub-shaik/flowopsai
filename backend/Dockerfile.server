@@ -2,22 +2,23 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system deps (e.g. psycopg2, build essentials)
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+# System deps for psycopg2, etc.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install Python deps
+# Python deps
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source
+# App source
 COPY src ./src
 
+# Ensure uvicorn can import "server.main" from /app/src
 ENV PYTHONUNBUFFERED=1
-ENV PORT=${FLOWOPSAI_SERVER_PORT}
+ENV PYTHONPATH=/app/src
 
 EXPOSE ${FLOWOPSAI_SERVER_PORT}
 
-CMD ["python", "src/server/main.py"]
+# Launch FastAPI app
+CMD ["uvicorn", "server.main:app", "--host", "0.0.0.0", "--port", "8181"]

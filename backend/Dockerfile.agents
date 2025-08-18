@@ -2,22 +2,18 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system deps if needed
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install Python deps
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source
 COPY src ./src
-
 ENV PYTHONUNBUFFERED=1
-ENV PORT=${FLOWOPSAI_AGENTS_PORT}
+ENV PYTHONPATH=/app/src
 
 EXPOSE ${FLOWOPSAI_AGENTS_PORT}
 
+# Start the worker
 CMD ["python", "src/agents/main.py"]
