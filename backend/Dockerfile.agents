@@ -1,18 +1,11 @@
 FROM nvidia/cuda:12.2.0-runtime-ubuntu20.04
-
-# Install Python + pip
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.11 python3.11-dev python3-pip ca-certificates && \
     rm -rf /var/lib/apt/lists/* && \
     ln -sf /usr/bin/python3.11 /usr/bin/python && \
     ln -sf /usr/bin/pip3 /usr/bin/pip
-
 WORKDIR /app
-
-# If you want a separate deps file for agents, create it; else reuse backend/requirements.txt
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
 COPY . .
-
 CMD ["python", "src/agents/main.py"]
