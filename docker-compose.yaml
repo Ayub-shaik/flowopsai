@@ -24,7 +24,7 @@ services:
     container_name: flowopsai-agents
     env_file:
       - .env
-    command: python src/agents/main.py
+    command: python -m src.agents.main
     ports:
       - "${FLOWOPSAI_AGENTS_PORT}:8052"
     depends_on:
@@ -44,6 +44,7 @@ services:
       - HOST=0.0.0.0
       - VITE_API_URL=http://backend:5000
       - VITE_TRAINER_URL=http://ml-trainer:8090
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
     ports:
       - "${FLOWOPSAI_UI_PORT}:5173"
     depends_on:
