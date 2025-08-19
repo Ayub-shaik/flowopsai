@@ -19,13 +19,7 @@ It provides agent-driven automation for training, deployment, monitoring, and re
 - **Trainer Service:** Runs and monitors training pipelines.  
 - **Integrations:** Can plug into MCP servers, RAG pipelines, and n8n workflows.
 
-![Workflow Diagram](workflow_diagram.png)
-
----
-
-## 📊 Comparison: FlowOpsAI vs Traditional MLOps
-
-![Comparison Chart](comparison_chart.png)
+![Workflow Diagram]
 
 ---
 
