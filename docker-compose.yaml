@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres:15
+    image: pgvector/pgvector:pg16   # use pg15 if you want to keep old data
     container_name: flowopsai_postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -10,68 +10,101 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d   # init scripts (e.g. pgvector)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     ports:
       - "5432:5432"
+    restart: unless-stopped
 
   backend-server:
     build:
       context: ./backend
       dockerfile: Dockerfile.server
-    container_name: flowopsai_server
+    container_name: flowopsai_backend
+    env_file: .env
     environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       FLOWOPSAI_SERVER_PORT: ${FLOWOPSAI_SERVER_PORT}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_HOST: postgres
-      LOG_LEVEL: ${LOG_LEVEL}
-    depends_on:
-      - postgres
-    ports:
-      - "${FLOWOPSAI_SERVER_PORT}:${FLOWOPSAI_SERVER_PORT}"
-
-  backend-agents:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.agents
-    container_name: flowopsai_agents
-    environment:
-      FLOWOPSAI_AGENTS_PORT: ${FLOWOPSAI_AGENTS_PORT}
+      TRAINER_URL: http://trainer:${TRAINER_PORT}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       MISTRAL_API_KEY: ${MISTRAL_API_KEY}
       LOG_LEVEL: ${LOG_LEVEL}
     depends_on:
-      - backend-server
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:${FLOWOPSAI_SERVER_PORT}/api/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     ports:
-      - "${FLOWOPSAI_AGENTS_PORT}:${FLOWOPSAI_AGENTS_PORT}"
+      - "${FLOWOPSAI_SERVER_PORT}:${FLOWOPSAI_SERVER_PORT}"
+    volumes:
+      - models_storage:/models
+    restart: unless-stopped
+    command: uvicorn server.main:app --host 0.0.0.0 --port ${FLOWOPSAI_SERVER_PORT}
 
-  ml-trainer:
+  agents:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.agents
+    container_name: flowopsai_agents
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      BACKEND_URL: http://backend-server:${FLOWOPSAI_SERVER_PORT}
+      LOG_LEVEL: ${LOG_LEVEL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend-server:
+        condition: service_started
+    command: python -m agents.main
+    volumes:
+      - models_storage:/models
+    restart: unless-stopped
+
+  trainer:
     build:
       context: ./ml-trainer
       dockerfile: Dockerfile.trainer
     container_name: flowopsai_trainer
+    env_file: .env
     environment:
       TRAINER_PORT: ${TRAINER_PORT}
       LOG_LEVEL: ${LOG_LEVEL}
-    volumes:
-      - ./ml-trainer/data:/app/data
-      - ./ml-trainer/models:/app/models
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:${TRAINER_PORT}/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     ports:
       - "${TRAINER_PORT}:${TRAINER_PORT}"
+    volumes:
+      - models_storage:/models
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.frontend
     container_name: flowopsai_frontend
+    env_file: .env
     environment:
       FLOWOPSAI_UI_PORT: ${FLOWOPSAI_UI_PORT}
+    depends_on:
+      backend-server:
+        condition: service_started
     ports:
       - "${FLOWOPSAI_UI_PORT}:3737"
-    depends_on:
-      - backend-server
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  models_storage:
