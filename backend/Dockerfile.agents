@@ -1,18 +1,19 @@
 FROM python:3.11-slim
 
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PYTHONPATH=/app
+
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev && \
+RUN apt-get update && apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY src ./src
 
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app/src
-
-# run the package as a module so relative paths resolve
-CMD ["python", "-m", "agents.main"]
+# agents run as a module (compose sets the command)
+CMD ["python", "-m", "src.agents.main"]

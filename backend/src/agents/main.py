@@ -1,5 +1,5 @@
-# run as a package module: python -m agents.main
-from agents.workers import run_worker  # absolute import
+# run as a package module: python -m src.agents.main
+from src.agents.workers import run_worker
 
 def main():
     print("Starting agent worker...")

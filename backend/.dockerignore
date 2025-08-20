@@ -2,10 +2,12 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.sqlite3
 *.log
 .env
 .git
 .gitignore
+alembic/versions/__pycache__/
 dist/
 build/
 node_modules/

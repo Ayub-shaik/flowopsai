@@ -4,6 +4,5 @@ pydantic
 numpy
 pandas
 scikit-learn
-matplotlib
 joblib
 python-multipart
