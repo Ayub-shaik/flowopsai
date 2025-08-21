@@ -1,5 +1,5 @@
 # backend/src/server/routes.py
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 import os
 
@@ -22,6 +22,8 @@ def get_db():
 
 def utcnow():
     return datetime.now(timezone.utc)
+
+# ---------------- Schemas ----------------
 
 class HealthOut(BaseModel):
     status: str = "ok"
@@ -49,6 +51,23 @@ class WorkflowOut(BaseModel):
     name: str
     pipeline_spec: Optional[dict] = None
     created_at: datetime
+
+class RunOut(BaseModel):
+    id: int
+    status: RunStatus
+    metrics: Optional[Dict[str, Any]] = None
+    created_at: datetime
+    updated_at: datetime
+    workflow_id: Optional[int] = None
+
+class MetricsIn(BaseModel):
+    metrics: Dict[str, Any]
+
+class CompleteIn(BaseModel):
+    model_name: str = "sample-model"
+    model_path: str = "/models/sample/model.bin"
+
+# --------------- Endpoints ----------------
 
 @router.get("/api/health", response_model=HealthOut)
 def health() -> HealthOut:
@@ -97,6 +116,22 @@ def start_train(body: StartTrainIn, db: Session = Depends(get_db)) -> StartTrain
     db.commit()
     return StartTrainOut(run_id=run.id)
 
+# 🔎 Read one run (status + metrics)
+@router.get("/api/runs/{run_id}", response_model=RunOut)
+def get_run(run_id: int, db: Session = Depends(get_db)):
+    run = db.query(Run).filter(Run.id == run_id).first()
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+    return RunOut(
+        id=run.id,
+        status=run.status,
+        metrics=run.metrics,
+        created_at=run.created_at,
+        updated_at=run.updated_at,
+        workflow_id=run.workflow_id,
+    )
+
+# 🔥 Trainer posts events here (unchanged)
 @router.post("/api/runs/{run_id}/events")
 def post_run_event(run_id: int, ev: RunEventIn, db: Session = Depends(get_db)):
     run = db.query(Run).filter(Run.id == run_id).first()
@@ -122,9 +157,16 @@ def post_run_event(run_id: int, ev: RunEventIn, db: Session = Depends(get_db)):
     db.commit()
     return {"ok": True}
 
-class CompleteIn(BaseModel):
-    model_name: str = "sample-model"
-    model_path: str = "/models/sample/model.bin"
+# 🧮 Trainer updates metrics JSON here
+@router.put("/api/runs/{run_id}/metrics")
+def put_run_metrics(run_id: int, body: MetricsIn, db: Session = Depends(get_db)):
+    run = db.query(Run).filter(Run.id == run_id).first()
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+    run.metrics = body.metrics
+    run.updated_at = utcnow()
+    db.commit()
+    return {"ok": True}
 
 @router.post("/api/runs/{run_id}/complete")
 def complete_run(run_id: int, body: CompleteIn, db: Session = Depends(get_db)):
@@ -149,7 +191,7 @@ def complete_run(run_id: int, body: CompleteIn, db: Session = Depends(get_db)):
     db.commit()
     return {"ok": True, "model_id": model.id}
 
-# 🔥 New: model artifact download
+# 📥 Model artifact download
 @router.get("/api/models/{model_id}/download")
 def download_model(model_id: int, db: Session = Depends(get_db)):
     m = db.query(Model).filter(Model.id == model_id).first()
