@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -87,6 +85,7 @@ services:
       - models_storage:/models
     restart: unless-stopped
 
+
   frontend:
     build:
       context: ./frontend
@@ -95,14 +94,54 @@ services:
     env_file: .env
     environment:
       FLOWOPSAI_UI_PORT: ${FLOWOPSAI_UI_PORT}
+      FLOWOPSAI_SERVER_PORT: ${FLOWOPSAI_SERVER_PORT}
     depends_on:
       backend-server:
         condition: service_started
-    # Map host 3737 -> container 80 (nginx listens on 80)
+      n8n:
+        condition: service_started
     ports:
       - "${FLOWOPSAI_UI_PORT}:80"
     restart: unless-stopped
+  n8n:
+    image: n8nio/n8n:latest   # consider pinning a version later
+    container_name: flowopsai_n8n
+    env_file: .env
+    command: start            # <— IMPORTANT: not "n8n start"
+    environment:
+      N8N_HOST: ${HOST}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      N8N_PATH: /n8n
+      N8N_EDITOR_BASE_URL: http://${HOST}:${FLOWOPSAI_UI_PORT}/n8n/
+      WEBHOOK_URL: http://${HOST}:${FLOWOPSAI_UI_PORT}/n8n/
+      N8N_SECURE_HEADERS: false
+      N8N_DISABLE_SECURE_HEADERS: true
+      N8N_TRUSTED_PROXIES: '*'
+      N8N_SECURE_COOKIE: 'false'
+      N8N_SESSION_COOKIE_SAMESITE: lax
+      N8N_DIAGNOSTICS_ENABLED: false
+      N8N_PERSONALIZATION_ENABLED: false
+      N8N_PUBLIC_API_DISABLED: false
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: 'true'   # quiet the perms warning
+      # If you intend to persist, either remove N8N_ENCRYPTION_KEY entirely,
+      # or ensure it matches the value inside /home/node/.n8n/config
+      # N8N_ENCRYPTION_KEY: <optional, see below>
+    ports:
+      - "${N8N_PORT}:${N8N_PORT}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5678/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+    depends_on:
+      backend-server:
+        condition: service_started
 
 volumes:
   postgres_data:
   models_storage:
+  n8n_data:

@@ -1,15 +1,14 @@
+# backend/src/server/main.py
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.server import routes, ws
-from src.database import engine, Base
-
-# Ensure tables exist (Alembic is preferred, but this helps first boot)
+from src.server import integrations  # <-- add this
 
 app = FastAPI(title="FlowOpsAI Backend")
 
-# Enable CORS if needed
+# Optional CORS in dev (handy if you ever run vite dev server directly)
 if os.getenv("ENABLE_CORS", "0") == "1":
     app.add_middleware(
         CORSMiddleware,
@@ -19,9 +18,13 @@ if os.getenv("ENABLE_CORS", "0") == "1":
         allow_headers=["*"],
     )
 
-# include API routes and WS
-app.include_router(routes.router)   
+# REST under /api
+app.include_router(routes.router, prefix="/api")
+
+# WebSocket WITHOUT /api (nginx proxies /ws to backend)
 app.include_router(ws.router)
+
+app.include_router(integrations.router, prefix="/api")  # <-- add this
 
 @app.get("/")
 def root():

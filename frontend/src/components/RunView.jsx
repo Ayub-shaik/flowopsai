@@ -4,17 +4,12 @@ import AgentTimeline from "./AgentTimeline";
 
 export default function RunView({ runId }) {
   const [events, setEvents] = useState([]);
-
   useEffect(() => {
-    if (!runId) {
-      console.warn("RunView: missing runId");
-      return;
-    }
+    if (!runId) return;
     const ws = connectRunEvents(runId, (ev) =>
       setEvents((prev) => [...prev, ev])
     );
-    return () => ws && ws.close();
+    return () => ws.close();
   }, [runId]);
-
   return <AgentTimeline events={events} />;
 }
