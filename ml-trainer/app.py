@@ -1,41 +1,58 @@
-from fastapi import FastAPI, UploadFile, File
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
-import joblib
+# ml-trainer/app.py
 import os
+import time
+import requests
+from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI(title="FlowOpsAI Trainer")
 
+# Where the backend API lives (inside Docker network, use service name 'backend-server')
+BACKEND_BASE = os.getenv("BACKEND_BASE_URL", "http://backend-server:8181")
+POST_EVENT_URL = lambda run_id: f"{BACKEND_BASE}/api/runs/{run_id}/events"
+COMPLETE_URL = lambda run_id: f"{BACKEND_BASE}/api/runs/{run_id}/complete"
+
+
+class StartOut(BaseModel):
+    ok: bool = True
+
+
+def post_event(run_id: int, level: str, title: str, detail: str = ""):
+    payload = {"level": level, "title": title, "detail": detail}
+    r = requests.post(POST_EVENT_URL(run_id), json=payload, timeout=10)
+    r.raise_for_status()
+
+
 @app.get("/")
 def root():
-    return {"message": "FlowOpsAI Trainer API running"}
+    return {"status": "trainer ok"}
 
-@app.post("/train")
-async def train_model(file: UploadFile = File(...)):
-    # Save uploaded file
-    file_location = f"/app/data/{file.filename}"
-    os.makedirs("/app/data", exist_ok=True)
-    with open(file_location, "wb+") as f:
-        f.write(await file.read())
 
-    # Load dataset
-    df = pd.read_csv(file_location)
-    if "target" not in df.columns:
-        return {"error": "CSV must have a 'target' column"}
+@app.post("/start/{run_id}", response_model=StartOut)
+def start_training(run_id: int):
+    # Notify: started
+    post_event(run_id, "info", "Run started", "Trainer picked up run")
 
-    X = df.drop("target", axis=1)
-    y = df["target"]
+    # Fake steps
+    for i in range(1, 4):
+        time.sleep(2)
+        post_event(run_id, "info", f"Step {i}", f"Trainer finished step {i}")
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Simulate writing a tiny “artifact”
+    models_dir = "/models"
+    os.makedirs(models_dir, exist_ok=True)
+    artifact_path = os.path.join(models_dir, f"run-{run_id}", "model.bin")
+    os.makedirs(os.path.dirname(artifact_path), exist_ok=True)
+    with open(artifact_path, "wb") as f:
+        f.write(b"\x00\x01\x02\x03")  # tiny dummy payload
 
-    model = LogisticRegression(max_iter=200)
-    model.fit(X_train, y_train)
-    preds = model.predict(X_test)
-    acc = accuracy_score(y_test, preds)
+    # Notify: completed + register model
+    post_event(run_id, "info", "Run completed", "All steps done in trainer")
+    r = requests.post(
+        COMPLETE_URL(run_id),
+        json={"model_name": f"model-run-{run_id}", "model_path": artifact_path},
+        timeout=10,
+    )
+    r.raise_for_status()
 
-    # Save trained model
-    joblib.dump(model, "/app/data/model.joblib")
-
-    return {"accuracy": acc, "model_path": "/app/data/model.joblib"}
+    return StartOut()

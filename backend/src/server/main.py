@@ -6,7 +6,6 @@ from src.server import routes, ws
 from src.database import engine, Base
 
 # Ensure tables exist (Alembic is preferred, but this helps first boot)
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="FlowOpsAI Backend")
 
