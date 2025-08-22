@@ -107,7 +107,6 @@ services:
     image: n8nio/n8n:latest   # consider pinning a version later
     container_name: flowopsai_n8n
     env_file: .env
-    command: start            # <— IMPORTANT: not "n8n start"
     environment:
       N8N_HOST: ${HOST}
       N8N_PORT: 5678
