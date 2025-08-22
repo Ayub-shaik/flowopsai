@@ -16,9 +16,14 @@ export async function apiPost(path, body) {
   return r.json();
 }
 
+export async function apiDelete(path) {
+  const r = await fetch(`${API}${path}`, { method: "DELETE" });
+  if (!r.ok) throw new Error(await r.text());
+  try { return await r.json(); } catch { return { ok: true }; }
+}
+
 // --- WS for run events ---
 export function connectRunEvents(runId, onEvent) {
-  // same host, nginx proxies /ws -> backend
   const wsProto = location.protocol === "https:" ? "wss" : "ws";
   const wsUrl = `${wsProto}://${location.host}/ws/runs/${runId}`;
   const ws = new WebSocket(wsUrl);

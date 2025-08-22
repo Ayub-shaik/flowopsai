@@ -8,8 +8,9 @@ import RunDetail from "./pages/RunDetail.jsx";
 import Workflows from "./pages/Workflows.jsx";
 import Models from "./pages/Models.jsx";
 import Insights from "./pages/Insights.jsx";
-import Automations from "./pages/Automations.jsx"; // <-- add
-
+import Automations from "./pages/Automations.jsx";
+import AppGen from "./pages/AppGen.jsx";
+import Apps from "./pages/Apps.jsx";
 
 export default function App() {
   return (
@@ -24,8 +25,10 @@ export default function App() {
             <Route path="/workflows" element={<Workflows />} />
             <Route path="/models" element={<Models />} />
             <Route path="/insights" element={<Insights />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
             <Route path="/automations" element={<Automations />} />
+            <Route path="/appgen" element={<AppGen />} />
+            <Route path="/apps" element={<Apps />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </div>

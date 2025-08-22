@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.server import routes, ws
 from src.server import integrations  # <-- add this
+from src.server.apps_routes import router as apps_router
+
 
 app = FastAPI(title="FlowOpsAI Backend")
 
@@ -24,7 +26,9 @@ app.include_router(routes.router, prefix="/api")
 # WebSocket WITHOUT /api (nginx proxies /ws to backend)
 app.include_router(ws.router)
 
-app.include_router(integrations.router, prefix="/api")  # <-- add this
+app.include_router(integrations.router, prefix="/api") 
+app.include_router(apps_router, prefix="/api")
+
 
 @app.get("/")
 def root():
