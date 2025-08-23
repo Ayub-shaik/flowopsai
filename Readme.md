@@ -17,7 +17,12 @@ FlowOpsAI is an **AI + MLOps SaaS orchestration framework** that empowers develo
 - **Frontend UI**: Modern React-based interface for workflows, insights, and models.  
 - **Database Support**: PostgreSQL integration for persistent storage.  
 - **Multi-LLM Support**: Plug in OpenAI, Gemini, Anthropic, or Mistral seamlessly.  
-- **Dockerized Deployment**: Spin up the entire stack with `docker-compose`.  
+- **Dockerized Deployment**: Spin up the entire stack with `docker-compose`.
+<img width="1485" height="673" alt="image" src="https://github.com/user-attachments/assets/503be87d-6082-40a8-9dbe-4821a7cc5480" />
+
+<img width="1260" height="793" alt="image" src="https://github.com/user-attachments/assets/350a63dd-e528-41d8-945f-48f22cfbac98" />
+
+
 
 ---
 
